@@ -26,17 +26,14 @@ import java.util.List;
 /**
  * Internal bridge that listens to vanilla Bukkit/Paper events and
  * automatically fires the corresponding simpleEvents custom events.
- *
  * This exists purely so that plugins depending on simpleEvents can listen
  * to the {@code org.abbas.api.events.*} custom events directly, without
  * needing to call {@code SimpleEvents.callCustom...} themselves.
- *
  * Where the custom event is {@link org.bukkit.event.Cancellable}, this
  * bridge propagates {@code isCancelled()} (and, where applicable, message
  * edits) back onto the vanilla event after dependent plugins have had a
  * chance to react — otherwise cancelling the custom event would have no
  * real effect on gameplay.
- *
  * {@link PlayerLevelUpEvent} is intentionally NOT bridged here: it has no
  * vanilla Bukkit equivalent, and is meant to be fired manually by whichever
  * plugin implements its own leveling system via
