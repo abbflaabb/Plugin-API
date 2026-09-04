@@ -2,6 +2,7 @@ package org.abbas.simpleEvents;
 
 import net.kyori.adventure.text.Component;
 import org.abbas.api.events.*;
+import org.abbas.api.events.enums.InteractTypes;
 import org.abbas.simpleEvents.internal.InternalEventBridge;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -14,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -235,6 +237,15 @@ public final class SimpleEvents extends JavaPlugin {
     public static void callCustomPlayerMove(@NonNull Player player, @NonNull Location from, @NonNull Location to) {
         Bukkit.getPluginManager().callEvent(
                 new CustomPlayerMoveEvent(player, from, to)
+        );
+    }
+    public static void callCustomPlayerInteract(@NonNull Player player,
+                                                @NonNull InteractTypes type,
+                                                @Nullable ItemStack itemInHand,
+                                                @Nullable Block clickedBlock,
+                                                @Nullable Vector clickedPosition) {
+        Bukkit.getPluginManager().callEvent(
+                new CustomPlayerInteractEvent(player, type, itemInHand, clickedBlock, clickedPosition)
         );
     }
 }

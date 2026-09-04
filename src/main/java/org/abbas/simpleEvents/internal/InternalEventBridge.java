@@ -3,8 +3,10 @@ package org.abbas.simpleEvents.internal;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import org.abbas.api.events.*;
+import org.abbas.api.events.enums.InteractTypes;
 import org.abbas.simpleEvents.SimpleEvents;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
 import org.bukkit.damage.DeathMessageType;
@@ -15,10 +17,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
+import org.bukkit.inventory.EquipmentSlot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -126,6 +126,38 @@ public final class InternalEventBridge implements Listener {
 
         event.setCancelled(customEvent.isCancelled());
     }
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onInteraction(PlayerInteractEvent event) {
+        InteractTypes type = switch (event.getAction()) {
+            case LEFT_CLICK_BLOCK -> InteractTypes.LEFT_CLICK_BLOCK;
+            case RIGHT_CLICK_BLOCK -> InteractTypes.RIGHT_CLICK_BLOCK;
+            case LEFT_CLICK_AIR -> InteractTypes.LEFT_CLICK_AIR;
+            case RIGHT_CLICK_AIR -> InteractTypes.RIGHT_CLICK_AIR;
+            default -> null; // PHYSICAL (pressure plates etc.) — not modeled yet
+        };
+
+        if (type != null) {
+            return;
+        }
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+        Block clickedBlock = event.getClickedBlock();
+        CustomPlayerInteractEvent customEvent = new CustomPlayerInteractEvent(
+                event.getPlayer(),
+                type,
+                event.getItem(),
+                clickedBlock,
+                null
+        );
+        Bukkit.getPluginManager().callEvent(customEvent);
+
+        if (customEvent.isCancelled()) {
+            event.setCancelled(true);
+        }
+    }
+
+
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockPlace(BlockPlaceEvent event) {
