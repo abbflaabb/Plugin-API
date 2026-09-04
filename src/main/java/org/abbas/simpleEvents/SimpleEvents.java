@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
+import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DeathMessageType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -247,5 +248,30 @@ public final class SimpleEvents extends JavaPlugin {
         Bukkit.getPluginManager().callEvent(
                 new CustomPlayerInteractEvent(player, type, itemInHand, clickedBlock, clickedPosition)
         );
+    }
+    /**
+     * Fires a custom player-kill event.
+     *
+     * @param victim       the player who was killed
+     * @param killer       the player who made the kill
+     * @param type         the death message type
+     * @param source       the source of the damage
+     * @param location     the location where the kill occurred
+     * @param weapon       the weapon used by the killer, or {@code null}
+     * @param cancelled    the initial cancellation state
+     */
+    public static void callCustomPlayerKill(
+            @NonNull Player victim,
+            @NonNull Player killer,
+            @NonNull DeathMessageType type,
+            @Nullable DamageSource source,
+            @NonNull Location location,
+            @Nullable ItemStack weapon,
+            boolean cancelled) {
+        Bukkit.getPluginManager().callEvent(
+                new CustomPlayerKillEvent(
+                        victim,
+                        killer,
+                        type, source, location, weapon, cancelled));
     }
 }

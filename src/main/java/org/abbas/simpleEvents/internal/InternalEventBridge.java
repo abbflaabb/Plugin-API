@@ -10,6 +10,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
 import org.bukkit.damage.DeathMessageType;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -88,16 +89,35 @@ public final class InternalEventBridge implements Listener {
         DeathMessageType deathMessageType = lastDamageCause != null
                 ? lastDamageCause.getDamageSource().getDamageType().getDeathMessageType()
                 : DeathMessageType.DEFAULT;
+        Player killer = event.getEntity().getKiller();
 
-        CustomPlayerDeathEvent customEvent = new CustomPlayerDeathEvent(
-                event.getEntity(),
-                deathMessage,
-                deathMessageType,
-                event.getEntity().getKiller()
-        );
-        Bukkit.getPluginManager().callEvent(customEvent);
+        CustomPlayerDeathEvent deathEvent =
+                new CustomPlayerDeathEvent(
+                        event.getEntity(),
+                        deathMessage,
+                        deathMessageType,
+                        killer
+                );
 
-        event.deathMessage(customEvent.getDeathMessage());
+        Bukkit.getPluginManager().callEvent(deathEvent);
+        if (killer != null) {
+
+            CustomPlayerKillEvent killEvent =
+                    new CustomPlayerKillEvent(
+                            event.getEntity(),
+                            killer,
+                            deathMessageType,
+                            lastDamageCause != null
+                                    ? lastDamageCause.getDamageSource()
+                                    : null,
+                            event.getEntity().getLocation(),
+                            killer.getInventory().getItemInMainHand(),
+                            event.isCancelled()
+                    );
+
+            Bukkit.getPluginManager().callEvent(killEvent);
+        }
+        event.deathMessage(deathEvent.getDeathMessage());
     }
     @EventHandler(priority = EventPriority.MONITOR)
     public void onMove(PlayerMoveEvent event) {
