@@ -8,7 +8,6 @@ import org.abbas.simpleEvents.SimpleEvents;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.command.Command;
 import org.bukkit.damage.DeathMessageType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,8 +20,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Internal bridge that listens to vanilla Bukkit/Paper events and
@@ -54,29 +51,23 @@ public final class InternalEventBridge implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
     public void onCommand(PlayerCommandPreprocessEvent event) {
-
-        List<Command> commands = new ArrayList<>();
-
         CustomProcessCommandEvent customEvent =
                 new CustomProcessCommandEvent(
                         event.getPlayer(),
-                        event.getMessage(),
-                        commands
+                        event.getMessage()
                 );
 
         Bukkit.getPluginManager().callEvent(customEvent);
 
-        // Custom event cancelled -> cancel the real Bukkit event
         if (customEvent.isCancelled()) {
             event.setCancelled(true);
             return;
         }
 
-        // Allow external plugins to modify the command
-        if (!customEvent.getMessage().equals(event.getMessage())) {
-            event.setMessage(customEvent.getMessage());
-        }
+        event.setMessage(customEvent.getMessage());
     }
+
+
 
 
     @EventHandler(priority = EventPriority.MONITOR)

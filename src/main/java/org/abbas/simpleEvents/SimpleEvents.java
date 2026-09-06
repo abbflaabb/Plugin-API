@@ -143,19 +143,21 @@ public final class SimpleEvents extends JavaPlugin {
     /**
      * Fires a custom command-processing event.
      *
-     * @param player   the player who issued the command
-     * @param message  the command message
-     * @param commands the initial command list
+     * @param player  the player who issued the command
+     * @param message the command message
+     * @return the dispatched event
      */
-    public static void callCustomProcessCommand(
+    public static CustomProcessCommandEvent callCustomProcessCommand(
             @NonNull Player player,
-            @NonNull String message,
-            @NonNull List<Command> commands
+            @NonNull String message
     ) {
-        Bukkit.getPluginManager().callEvent(
-                new CustomProcessCommandEvent(player, message, commands)
-        );
+        CustomProcessCommandEvent event =
+                new CustomProcessCommandEvent(player, message);
+
+        Bukkit.getPluginManager().callEvent(event);
+        return event;
     }
+
 
     /**
      * Fires a custom player-death event.

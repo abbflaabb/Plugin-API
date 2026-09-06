@@ -1,14 +1,11 @@
 package org.abbas.api.events;
 
-import org.bukkit.command.Command;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jspecify.annotations.NonNull;
 
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Custom event fired before a player command is processed.
@@ -22,24 +19,21 @@ public class CustomProcessCommandEvent extends Event implements Cancellable {
     private final Player player;
     private String message;
     private boolean cancel = false;
-    private final List<Command> commands;
 
     /**
      * Creates a custom command-processing event.
      *
      * @param player the player who issued the command
      * @param message the command message
-     * @param commands the initial command list; its contents are copied
      */
     public CustomProcessCommandEvent(
             @NonNull Player player,
-            @NonNull String message,
-            @NonNull List<Command> commands
+            @NonNull String message
     ) {
         this.player = player;
         this.message = message;
-        this.commands = new ArrayList<>(commands);
     }
+
 
     /** @return the player who issued the command */
     @NonNull
@@ -56,17 +50,6 @@ public class CustomProcessCommandEvent extends Event implements Cancellable {
     /** @param message the new command message */
     public void setMessage(String message) {
         this.message = message;
-    }
-
-    /** @return the mutable list of command objects associated with the event */
-    @NonNull
-    public List<Command> getCommands() {
-        return commands;
-    }
-
-    /** @param command the command object to add */
-    public void addCommand(@NonNull Command command) {
-        this.commands.add(command);
     }
 
     /** @return {@code true} when command processing is cancelled */
