@@ -13,7 +13,6 @@ import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DeathMessageType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -148,15 +147,14 @@ public final class SimpleEvents extends JavaPlugin {
      * @param message  the command message
      * @param commands the initial command list
      */
-    public static CustomProcessCommandEvent callCustomProcessCommand(
+    public static void callCustomProcessCommand(
             @NonNull Player player,
             @NonNull String message,
             @NonNull List<Command> commands
     ) {
-        CustomProcessCommandEvent event =
-                new CustomProcessCommandEvent(player, message, commands);
-        Bukkit.getPluginManager().callEvent(event);
-        return event;
+        Bukkit.getPluginManager().callEvent(
+                new CustomProcessCommandEvent(player, message, commands)
+        );
     }
 
     /**
@@ -251,29 +249,6 @@ public final class SimpleEvents extends JavaPlugin {
                 new CustomPlayerInteractEvent(player, type, itemInHand, clickedBlock, clickedPosition)
         );
     }
-
-    /**
-     * Fires a custom player-teleport event with an initial cancellation state.
-     *
-     * @param player the player being teleported
-     * @param from the original location
-     * @param to the destination location
-     * @param teleportCause the reason for the teleport
-     * @param cancelled the initial cancellation state
-     */
-    public static void callCustomPlayerTeleport(
-            @NonNull Player player,
-            @NonNull Location from,
-            @NonNull Location to,
-            @NonNull PlayerTeleportEvent.TeleportCause teleportCause,
-            boolean cancelled
-    ) {
-        CustomPlayerTeleportEvent event = new CustomPlayerTeleportEvent(
-                player, from, to, teleportCause);
-        event.setCancelled(cancelled);
-        Bukkit.getPluginManager().callEvent(event);
-    }
-
     /**
      * Fires a custom player-kill event.
      *

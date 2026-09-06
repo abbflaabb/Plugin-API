@@ -10,10 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-/**
- * Custom event fired before a player is teleported.
- */
-public final class CustomPlayerTeleportEvent extends Event implements Cancellable {
+public class CustomPlayerTeleportEvent extends Event implements Cancellable {
 
     private static final HandlerList HANDLER_LIST = new HandlerList();
 
@@ -32,7 +29,10 @@ public final class CustomPlayerTeleportEvent extends Event implements Cancellabl
         this.player = Objects.requireNonNull(player, "player");
         this.from = Objects.requireNonNull(from, "from").clone();
         this.to = Objects.requireNonNull(to, "to").clone();
-        this.teleportCause = Objects.requireNonNull(teleportCause, "teleportCause");
+        this.teleportCause = Objects.requireNonNull(
+                teleportCause,
+                "teleportCause"
+        );
     }
 
     @NotNull

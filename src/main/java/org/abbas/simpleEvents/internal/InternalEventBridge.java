@@ -42,20 +42,14 @@ import java.util.List;
  */
 public final class InternalEventBridge implements Listener {
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
-        CustomPlayerJoinEvent customEvent = new CustomPlayerJoinEvent(
-                event.getPlayer(), event.getJoinMessage());
-        Bukkit.getPluginManager().callEvent(customEvent);
-        event.setJoinMessage(customEvent.getMessage());
+        SimpleEvents.callCustomPlayerJoin(event.getPlayer(), null);
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
-        CustomPlayerQuitEvent customEvent = new CustomPlayerQuitEvent(
-                event.getPlayer(), event.getQuitMessage());
-        Bukkit.getPluginManager().callEvent(customEvent);
-        event.setQuitMessage(customEvent.getMessage());
+        SimpleEvents.callCustomPlayerQuit(event.getPlayer(), null);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
@@ -85,7 +79,7 @@ public final class InternalEventBridge implements Listener {
     }
 
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(PlayerDeathEvent event) {
         Component deathMessage = event.deathMessage() != null
                 ? event.deathMessage()
@@ -122,18 +116,11 @@ public final class InternalEventBridge implements Listener {
                     );
 
             Bukkit.getPluginManager().callEvent(killEvent);
-            if (killEvent.isCancelled()) {
-                event.setCancelled(true);
-            }
         }
         event.deathMessage(deathEvent.getDeathMessage());
     }
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onMove(PlayerMoveEvent event) {
-        if (event.getTo() == null) {
-            return;
-        }
-
         CustomPlayerMoveEvent customEvent = new CustomPlayerMoveEvent(
                 event.getPlayer(),
                 event.getFrom(),
@@ -144,7 +131,7 @@ public final class InternalEventBridge implements Listener {
         event.setTo(customEvent.getTo());
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockBreak(BlockBreakEvent event) {
         CustomBlockBreakEvent customEvent = new CustomBlockBreakEvent(
                 event.getPlayer(),
@@ -166,7 +153,7 @@ public final class InternalEventBridge implements Listener {
             default -> null; // PHYSICAL (pressure plates etc.) — not modeled yet
         };
 
-        if (type == null) {
+        if (type != null) {
             return;
         }
         if (event.getHand() != EquipmentSlot.HAND) {
@@ -178,7 +165,7 @@ public final class InternalEventBridge implements Listener {
                 type,
                 event.getItem(),
                 clickedBlock,
-                event.getClickedPosition()
+                null
         );
         Bukkit.getPluginManager().callEvent(customEvent);
 
@@ -189,7 +176,7 @@ public final class InternalEventBridge implements Listener {
 
 
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockPlace(BlockPlaceEvent event) {
         BlockState replacedState = event.getBlockReplacedState();
 
@@ -206,7 +193,7 @@ public final class InternalEventBridge implements Listener {
         event.setBuild(customEvent.canBuild());
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onChat(AsyncChatEvent event) {
         CustomPlayerChatEvent customEvent = new CustomPlayerChatEvent(
                 event.getPlayer(),
@@ -217,6 +204,8 @@ public final class InternalEventBridge implements Listener {
         Bukkit.getPluginManager().callEvent(customEvent);
 
         event.setCancelled(customEvent.isCancelled());
-        event.message(customEvent.getMessage());
+        if (!customEvent.getMessage().equals(event.message())) {
+            event.message(customEvent.getMessage());
+        }
     }
 }
