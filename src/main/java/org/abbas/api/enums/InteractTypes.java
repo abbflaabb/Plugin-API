@@ -1,4 +1,4 @@
-package org.abbas.api.events.enums;
+package org.abbas.api.enums;
 
 public enum InteractTypes {
     LEFT_CLICK_BLOCK,

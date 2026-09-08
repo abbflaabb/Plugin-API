@@ -1,5 +1,5 @@
 name: simpleEvents
 version: '${version}'
 
-main: org.abbas.simpleEvents.SimpleEvents
+main: org.abbas.PluginAPI.API
 api-version: '1.21'

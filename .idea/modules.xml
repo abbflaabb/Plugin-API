@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/simpleevents.iml" filepath="$PROJECT_DIR$/simpleevents.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Plugin-API.iml" filepath="$PROJECT_DIR$/Plugin-API.iml" />
     </modules>
   </component>
 </project>

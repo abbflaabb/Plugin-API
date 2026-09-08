@@ -1,6 +1,6 @@
 package org.abbas.api.events;
 
-import org.abbas.api.events.enums.InteractTypes;
+import org.abbas.api.enums.InteractTypes;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;

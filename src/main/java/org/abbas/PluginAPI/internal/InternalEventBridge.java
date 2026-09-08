@@ -1,10 +1,10 @@
-package org.abbas.simpleEvents.internal;
+package org.abbas.PluginAPI.internal;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import org.abbas.api.events.*;
-import org.abbas.api.events.enums.InteractTypes;
-import org.abbas.simpleEvents.SimpleEvents;
+import org.abbas.api.enums.InteractTypes;
+import org.abbas.PluginAPI.API;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -39,14 +39,22 @@ import org.bukkit.inventory.EquipmentSlot;
  */
 public final class InternalEventBridge implements Listener {
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onJoin(PlayerJoinEvent event) {
-        SimpleEvents.callCustomPlayerJoin(event.getPlayer(), null);
-    }
 
+        CustomPlayerJoinEvent customEvent =
+                new CustomPlayerJoinEvent(
+                        event.getPlayer(),
+                        event.joinMessage()
+                );
+
+        Bukkit.getPluginManager().callEvent(customEvent);
+
+        event.joinMessage(customEvent.getMessage());
+    }
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
-        SimpleEvents.callCustomPlayerQuit(event.getPlayer(), null);
+        API.callCustomPlayerQuit(event.getPlayer(), null);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)

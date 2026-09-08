@@ -1,14 +1,13 @@
-package org.abbas.simpleEvents;
+package org.abbas.PluginAPI;
 
 import net.kyori.adventure.text.Component;
 import org.abbas.api.events.*;
-import org.abbas.api.events.enums.InteractTypes;
-import org.abbas.simpleEvents.internal.InternalEventBridge;
+import org.abbas.api.enums.InteractTypes;
+import org.abbas.PluginAPI.internal.InternalEventBridge;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.command.Command;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DeathMessageType;
 import org.bukkit.entity.Player;
@@ -20,8 +19,6 @@ import org.bukkit.util.Vector;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 /**
  * Main plugin class and public entry point for the SimpleEvents API.
  *
@@ -29,19 +26,18 @@ import java.util.List;
  * events and register listeners. The plugin also installs an internal bridge
  * that converts selected Bukkit/Paper events into SimpleEvents events.</p>
  */
-public final class SimpleEvents extends JavaPlugin {
+public final class API extends JavaPlugin {
 
-    private static @Nullable SimpleEvents instance;
+    private static @Nullable API instance;
 
     /**
      * Returns the currently enabled SimpleEvents plugin instance.
      *
      * @return the plugin instance, or {@code null} when SimpleEvents is not enabled
      */
-    public static @Nullable SimpleEvents getInstance() {
+    public static @Nullable API getInstance() {
         return instance;
     }
-
     /**
      * Enables SimpleEvents and registers the internal event bridge.
      */
@@ -122,7 +118,7 @@ public final class SimpleEvents extends JavaPlugin {
      */
     public static void callCustomPlayerJoin(
             @NonNull Player player,
-            @Nullable String message
+            @Nullable Component message
     ) {
         Bukkit.getPluginManager().callEvent(new CustomPlayerJoinEvent(player, message));
     }

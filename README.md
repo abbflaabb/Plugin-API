@@ -1,109 +1,87 @@
-# SimpleEvents
+# Plugin-API
 
-A lightweight Spigot/Paper API plugin for creating, dispatching, and listening to custom Bukkit-style events from Java plugins.
+A lightweight Spigot/Paper API for bridging Bukkit/Paper events into clean, reusable custom events for other Java plugins.
 
 [![JitPack](https://jitpack.io/v/abbflaabb/SimpleEvents.svg)](https://jitpack.io/#abbflaabb/SimpleEvents)
 
 ## Overview
 
-**SimpleEvents** provides a lightweight event API for Minecraft Spigot/Paper plugins.
+Plugin-API is a small plugin API designed to keep custom event logic out of your main plugin and make it reusable across plugins.
 
-It bridges selected Bukkit/Paper events into custom API events, allowing other plugins to listen to a consistent event layer without manually connecting every vanilla event.
+It automatically listens for common Paper/Bukkit events and fires matching custom events under the `org.abbas.api.events` package. This lets other plugins listen to a consistent, plugin-owned event layer instead of wiring up vanilla event listeners manually.
 
-SimpleEvents currently provides custom events for:
+The main public entry point is:
 
-* Player join
-* Player quit
-* Player death
-* Block break
-* Block place
-* Player chat
-* Command processing
-* Player level-up
+```java
+org.abbas.PluginAPI.API
+```
 
-The public API is located under:
+The event classes live in:
 
-```text
+```java
 org.abbas.api.events
 ```
 
-Internal implementation classes are kept separate from the public API.
+---
+
+## What's new in this update
+
+This update brings the API in line with the current implementation and expands the bridge coverage for modern Paper builds:
+
+- Java 21 + Paper 1.21.1 support
+- Updated Maven dependency setup
+- Expanded custom event coverage for movement, interaction, and kill events
+- More consistent API helper methods via `API.callCustom...()`
+- `Component`-based messaging support with Kyori Adventure
+- Listener registration helper through `API.registerListener(...)`
 
 ---
 
 ## Features
 
-* Lightweight custom event API
-* Automatic Bukkit/Paper event bridging
-* Cancellable custom events
-* Plugin-owned listener registration
-* Player level-up event support
-* Adventure `Component` support
-* Javadocs for public API classes and methods
-* Backward-compatible API additions
-
----
-
-## Project Structure
-
-```text
-src/main/java/
-├── org/abbas/api/events/
-│   ├── CustomBlockBreakEvent.java
-│   ├── CustomBlockPlaceEvent.java
-│   ├── CustomPlayerChatEvent.java
-│   ├── CustomPlayerDeathEvent.java
-│   ├── CustomPlayerJoinEvent.java
-│   ├── CustomPlayerQuitEvent.java
-│   ├── CustomProcessCommandEvent.java
-│   └── PlayerLevelUpEvent.java
-│
-└── org/abbas/simpleEvents/
-    ├── SimpleEvents.java
-    └── internal/
-        └── InternalEventBridge.java
-
-src/main/resources/
-└── plugin.yml
-```
+- Lightweight custom event API
+- Automatic Bukkit/Paper bridging
+- Cancellable custom events
+- Plugin-owned listener registration
+- Player movement, interaction, and kill events
+- Adventure `Component` message support
+- Level-up event support without a direct Bukkit equivalent
+- Backward-friendly helper methods for dispatching events
 
 ---
 
 ## Requirements
 
-* Java 21
-* Spigot/Paper 1.21+
-* Maven
-* SimpleEvents installed on the server
+- Java 21
+- Paper/Spigot 1.21.1+
+- Maven
+- Plugin-API installed on the target server
 
 ---
 
 ## Installation
 
-Download the SimpleEvents JAR and place it in your server's:
+Place the generated JAR in your server's `plugins/` folder.
 
-```text
-plugins/
-```
-
-folder.
-
-Plugins using the API should declare SimpleEvents as a dependency.
-
-### plugin.yml
+If another plugin depends on Plugin-API, declare it in `plugin.yml`:
 
 ```yaml
 depend:
-  - simpleEvents
+  - Plugin-API
 ```
 
-Use `softdepend` instead if your plugin can operate without SimpleEvents.
+Use `softdepend` if your plugin can run without it:
+
+```yaml
+softdepend:
+  - Plugin-API
+```
 
 ---
 
-## Maven
+## Maven dependency
 
-Add the JitPack repository:
+Add JitPack:
 
 ```xml
 <repositories>
@@ -114,48 +92,48 @@ Add the JitPack repository:
 </repositories>
 ```
 
-Then add SimpleEvents as a dependency:
+Then add the dependency:
 
 ```xml
 <dependency>
     <groupId>com.github.abbflaabb</groupId>
-    <artifactId>SimpleEvents</artifactId>
-    <version>1.1.3-SNAPSHOT</version>
+    <artifactId>Plugin-API</artifactId>
+    <version>1.1.4-SNAPSHOT</version>
     <scope>provided</scope>
 </dependency>
 ```
 
-Replace the version with the release or tag you want to use.
+Replace the version with the tag or release you want to use.
 
 ---
 
-# Automatic Event Bridging
+## Event bridging
 
-SimpleEvents automatically listens for selected Bukkit/Paper events and dispatches the corresponding custom API events.
+Plugin-API automatically listens for relevant Paper/Bukkit events and dispatches matching custom events.
 
-| Bukkit/Paper Event             | SimpleEvents Event          |
-| ------------------------------ | --------------------------- |
-| `PlayerJoinEvent`              | `CustomPlayerJoinEvent`     |
-| `PlayerQuitEvent`              | `CustomPlayerQuitEvent`     |
+| Bukkit/Paper event | Plugin-API events           |
+| --- |-----------------------------|
+| `PlayerJoinEvent` | `CustomPlayerJoinEvent`     |
+| `PlayerQuitEvent` | `CustomPlayerQuitEvent`     |
 | `PlayerCommandPreprocessEvent` | `CustomProcessCommandEvent` |
-| `PlayerDeathEvent`             | `CustomPlayerDeathEvent`    |
-| `BlockBreakEvent`              | `CustomBlockBreakEvent`     |
-| `BlockPlaceEvent`              | `CustomBlockPlaceEvent`     |
-| `AsyncChatEvent`               | `CustomPlayerChatEvent`     |
+| `PlayerDeathEvent` | `CustomPlayerDeathEvent`    |
+| `PlayerKill` flow | `CustomPlayerKillEvent`     |
+| `BlockBreakEvent` | `CustomBlockBreakEvent`     |
+| `BlockPlaceEvent` | `CustomBlockPlaceEvent`     |
+| `AsyncChatEvent` | `CustomPlayerChatEvent`     |
+| `PlayerMoveEvent` | `CustomPlayerMoveEvent`     |
+| `PlayerInteractEvent` | `CustomPlayerInteractEvent` |
 
-Your plugin can listen directly to the SimpleEvents event instead of manually creating another Bukkit listener.
+`PlayerLevelUpEvent` is a custom event without a direct Paper equivalent and is fired manually by the plugin that owns the level system.
 
 ---
 
-# Registering a Listener
+## Registering a listener
 
-SimpleEvents provides plugin-owned listener registration:
+Use the built-in helper to register a listener with the source plugin as owner:
 
 ```java
-SimpleEvents.registerListener(
-        this,
-        new MyListener()
-);
+API.registerListener(this, new MyListener());
 ```
 
 Example:
@@ -166,265 +144,104 @@ public class MyListener implements Listener {
     @EventHandler
     public void onJoin(CustomPlayerJoinEvent event) {
         Player player = event.getPlayer();
-
-        // Your logic here
+        System.out.println(player.getName() + " joined the server.");
     }
 }
 ```
 
-Register it with:
+You can still register with Bukkit normally when needed:
 
 ```java
-SimpleEvents.registerListener(
-        this,
-        new MyListener()
-);
-```
-
-You can also use the normal Bukkit registration system:
-
-```java
-getServer().getPluginManager().registerEvents(
-        new MyListener(),
-        this
-);
+getServer().getPluginManager().registerEvents(new MyListener(), this);
 ```
 
 ---
 
-# Custom Player Join Event
+## Example usage
+
+### Join event
 
 ```java
 @EventHandler
 public void onJoin(CustomPlayerJoinEvent event) {
-
-    Player player = event.getPlayer();
-
-    event.setMessage(
-            "Welcome " + player.getName() + "!"
-    );
+    event.setMessage(Component.text("Welcome back, " + event.getPlayer().getName() + "!"));
 }
 ```
 
-Available methods:
-
-```text
-getPlayer()
-getMessage()
-setMessage(String)
-```
-
----
-
-# Custom Player Quit Event
+### Quit event
 
 ```java
 @EventHandler
 public void onQuit(CustomPlayerQuitEvent event) {
-
-    event.setMessage(
-            event.getPlayer().getName() + " left the server."
-    );
+    event.setMessage(event.getPlayer().getName() + " left the server.");
 }
 ```
 
-Available methods:
-
-```text
-getPlayer()
-getMessage()
-setMessage(String)
-```
-
----
-
-# Custom Player Death Event
+### Command event
 
 ```java
 @EventHandler
-public void onDeath(CustomPlayerDeathEvent event) {
-
-    event.setDeathMessage(
-            Component.text("A player has died.")
-    );
-}
-```
-
-Available methods:
-
-```text
-getPlayer()
-getDeathMessage()
-setDeathMessage(Component)
-getDeathMessageType()
-getKiller()
-```
-
----
-
-# Custom Block Break Event
-
-```java
-@EventHandler
-public void onBlockBreak(CustomBlockBreakEvent event) {
-
-    Player player = event.getPlayer();
-    Block block = event.getBlock();
-
-    // Cancel the event if required.
-    event.setCancelled(true);
-}
-```
-
-Available methods:
-
-```text
-getPlayer()
-getBlock()
-getMessage()
-setMessage(Component)
-isCancelled()
-setCancelled(boolean)
-```
-
----
-
-# Custom Block Place Event
-
-Available methods:
-
-```text
-getBlock()
-getReplacedBlockState()
-getItemInHand()
-getPlayer()
-getMessage()
-setMessage(Component)
-canBuild()
-setCanBuild(boolean)
-isCancelled()
-setCancelled(boolean)
-```
-
-Example:
-
-```java
-@EventHandler
-public void onBlockPlace(CustomBlockPlaceEvent event) {
-
-    if (!event.canBuild()) {
+public void onCommand(CustomProcessCommandEvent event) {
+    String message = event.getMessage();
+    if (message.startsWith("/home")) {
         event.setCancelled(true);
     }
 }
 ```
 
----
-
-# Custom Player Chat Event
+### Move event
 
 ```java
 @EventHandler
-public void onChat(CustomPlayerChatEvent event) {
-
-    event.setChannelName("global");
-
-    event.setMessage(
-            Component.text(
-                    event.getPlayer().getName()
-                            + ": "
-                            + event.getMessage()
-            )
-    );
+public void onMove(CustomPlayerMoveEvent event) {
+    Location from = event.getFrom();
+    Location to = event.getTo();
+    // React to movement changes here
 }
 ```
 
-Available methods:
-
-```text
-getPlayer()
-getMessage()
-setMessage(Component)
-getChannelName()
-setChannelName(String)
-isCancelled()
-setCancelled(boolean)
-```
-
----
-
-# Custom Process Command Event
+### Block break event
 
 ```java
 @EventHandler
-public void onCommand(CustomProcessCommandEvent event) {
-
-    List<Command> commands = event.getCommands();
-
-    // Modify the command chain if required.
+public void onBlockBreak(CustomBlockBreakEvent event) {
+    if (event.getPlayer().hasPermission("example.break-protected")) {
+        event.setCancelled(true);
+    }
 }
 ```
 
-Available methods:
-
-```text
-getPlayer()
-getMessage()
-getCommands()
-addCommand(Command)
-isCancelled()
-setCancelled(boolean)
-```
-
----
-
-# Player Level Up Event
-
-`PlayerLevelUpEvent` is a custom event and does not have a direct Bukkit/Paper equivalent.
-
-It is cancellable:
+### Level-up event
 
 ```java
 @EventHandler
 public void onLevelUp(PlayerLevelUpEvent event) {
-
     if (event.getNewLevel() >= 100) {
         event.setCancelled(true);
     }
 }
 ```
 
-Available methods:
+---
 
-```text
-getPlayer()
-getOldLevel()
-getNewLevel()
-isCancelled()
-setCancelled(boolean)
-```
+## Manual event dispatch
 
-### Firing the Event
-
-The compatibility method:
+The API exposes static helper methods for firing custom events manually.
 
 ```java
-SimpleEvents.callCustomPlayerLevelUp(
-        player,
-        oldLevel,
-        newLevel
-);
+API.callCustomPlayerJoin(player, Component.text("Welcome back!"));
+API.callCustomPlayerQuit(player, "See you soon!");
+API.callCustomPlayerChat(player, Component.text("Hello"), "global", false);
+API.callCustomProcessCommand(player, "/warp hub");
+API.callCustomPlayerDeath(player, Component.text("Someone died"), DeathMessageType.DEFAULT, null);
+API.callCustomPlayerMove(player, from, to);
+API.callCustomPlayerInteract(player, InteractTypes.RIGHT_CLICK_BLOCK, item, block, null);
 ```
 
-If you need to inspect the cancellation state, use:
+For level-up events, use:
 
 ```java
-PlayerLevelUpEvent event =
-        SimpleEvents.callCustomPlayerLevelUpEvent(
-                player,
-                oldLevel,
-                newLevel
-        );
-
+PlayerLevelUpEvent event = API.callCustomPlayerLevelUpEvent(player, oldLevel, newLevel);
 if (event.isCancelled()) {
     return;
 }
@@ -432,140 +249,67 @@ if (event.isCancelled()) {
 
 ---
 
-# Manually Firing Events
+## Supported events
 
-SimpleEvents also provides helper methods for manually dispatching custom events.
+Current public events in `org.abbas.api.events` include:
 
-### Player Join
+- `CustomPlayerJoinEvent`
+- `CustomPlayerQuitEvent`
+- `CustomPlayerDeathEvent`
+- `CustomPlayerKillEvent`
+- `CustomPlayerChatEvent`
+- `CustomProcessCommandEvent`
+- `CustomBlockBreakEvent`
+- `CustomBlockPlaceEvent`
+- `CustomPlayerMoveEvent`
+- `CustomPlayerInteractEvent`
+- `PlayerLevelUpEvent`
 
-```java
-SimpleEvents.callCustomPlayerJoin(
-        player,
-        "Welcome back!"
-);
-```
+Most of these implement Bukkit's usual `Event` pattern and support cancellation where relevant.
 
-### Player Quit
+---
 
-```java
-SimpleEvents.callCustomPlayerQuit(
-        player,
-        "See you soon!"
-);
-```
+## Project structure
 
-### Command Processing
-
-```java
-List<Command> commands = new ArrayList<>();
-
-SimpleEvents.callCustomProcessCommand(
-        player,
-        "Processing command chain",
-        commands
-);
+```text
+src/main/java/
+├── org/abbas/PluginAPI/
+│   ├── API.java
+│   └── internal/
+│       └── InternalEventBridge.java
+│
+├── org/abbas/api/
+│   ├── config/
+│   ├── enums/
+│   └── events/
+│       ├── CustomBlockBreakEvent.java
+│       ├── CustomBlockPlaceEvent.java
+│       ├── CustomPlayerChatEvent.java
+│       ├── CustomPlayerDeathEvent.java
+│       ├── CustomPlayerInteractEvent.java
+│       ├── CustomPlayerJoinEvent.java
+│       ├── CustomPlayerKillEvent.java
+│       ├── CustomPlayerMoveEvent.java
+│       ├── CustomPlayerQuitEvent.java
+│       ├── CustomPlayerTeleportEvent.java
+│       ├── CustomProcessCommandEvent.java
+│       └── PlayerLevelUpEvent.java
+│
+└── resources/
+    └── plugin.yml
 ```
 
 ---
 
-# Available Events
+## Building
 
-### `CustomPlayerJoinEvent`
-
-```text
-getPlayer()
-getMessage()
-setMessage(String)
-```
-
-### `CustomPlayerQuitEvent`
-
-```text
-getPlayer()
-getMessage()
-setMessage(String)
-```
-
-### `CustomPlayerDeathEvent`
-
-```text
-getPlayer()
-getDeathMessage()
-setDeathMessage(Component)
-getDeathMessageType()
-getKiller()
-```
-
-### `CustomBlockBreakEvent`
-
-```text
-getPlayer()
-getBlock()
-getMessage()
-setMessage(Component)
-isCancelled()
-setCancelled(boolean)
-```
-
-### `CustomBlockPlaceEvent`
-
-```text
-getBlock()
-getReplacedBlockState()
-getItemInHand()
-getPlayer()
-getMessage()
-setMessage(Component)
-canBuild()
-setCanBuild(boolean)
-isCancelled()
-setCancelled(boolean)
-```
-
-### `CustomPlayerChatEvent`
-
-```text
-getPlayer()
-getMessage()
-setMessage(Component)
-getChannelName()
-setChannelName(String)
-isCancelled()
-setCancelled(boolean)
-```
-
-### `CustomProcessCommandEvent`
-
-```text
-getPlayer()
-getMessage()
-getCommands()
-addCommand(Command)
-isCancelled()
-setCancelled(boolean)
-```
-
-### `PlayerLevelUpEvent`
-
-```text
-getPlayer()
-getOldLevel()
-getNewLevel()
-isCancelled()
-setCancelled(boolean)
-```
-
----
-
-# Building
-
-Clone the repository and build with Maven:
+To build the plugin locally:
 
 ```bash
 mvn clean package
 ```
 
-The compiled JAR will be generated inside:
+The JAR is generated in:
 
 ```text
 target/
@@ -573,24 +317,20 @@ target/
 
 ---
 
-# License
+## License
 
-This project currently does not declare a license.
-
-If you plan to make SimpleEvents an open-source project for other developers to use and modify, consider adding a license such as the MIT License.
+This project does not currently declare a license.
 
 ---
 
-# Contributing
+## Contributing
 
 Issues, suggestions, and pull requests are welcome.
 
-If you find a bug or have an idea for improving the API, open an issue in the GitHub repository.
+If you find a bug or have an idea for improving the event API, open an issue or contribute a patch to the repository.
 
 ---
 
-# Author
+## Author
 
 **Abbas**
-
-SimpleEvents is designed to provide a simple and reusable event API for Spigot/Paper plugin developers.
