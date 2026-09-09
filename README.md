@@ -2,7 +2,7 @@
 
 A lightweight Spigot/Paper event bridge API for plugin developers who want reusable custom events without writing manual Bukkit listeners for every vanilla event.
 
-[![JitPack](https://jitpack.io/v/abbflaabb/SimpleEvents.svg)](https://jitpack.io/#abbflaabb/SimpleEvents)
+[![](https://jitpack.io/v/abbflaabb/Plugin-API.svg)](https://jitpack.io/#abbflaabb/Plugin-API)
 
 ## Overview
 
