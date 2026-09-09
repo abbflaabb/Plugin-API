@@ -4,20 +4,32 @@ import net.kyori.adventure.text.Component;
 import org.abbas.api.events.*;
 import org.abbas.api.enums.InteractTypes;
 import org.abbas.PluginAPI.internal.InternalEventBridge;
+import org.abbas.api.events.inventory.*;
+import org.abbas.api.interfaces.DatabaseAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DeathMessageType;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.DragType;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Main plugin class and public entry point for the SimpleEvents API.
@@ -131,7 +143,7 @@ public final class API extends JavaPlugin {
      */
     public static void callCustomPlayerQuit(
             @NonNull Player player,
-            @Nullable String message
+            @Nullable Component message
     ) {
         Bukkit.getPluginManager().callEvent(new CustomPlayerQuitEvent(player, message));
     }
@@ -271,5 +283,93 @@ public final class API extends JavaPlugin {
                         victim,
                         killer,
                         type, source, location, weapon, cancelled));
+    }
+    public static void callCustomInventoryOpen(
+            @NonNull Player player,
+            @NonNull Inventory inventory,
+            @NonNull InventoryView inventoryView,
+            boolean cancelled
+            ) {
+        Bukkit.getPluginManager().callEvent(new CustomInventoryOpenEvent(
+                player,
+                inventory,
+                inventoryView,
+                cancelled)
+        );
+    }
+    public static void callCustomInventoryClose(
+            @NonNull Player player,
+            @NonNull Inventory inventory,
+            @NonNull InventoryView inventoryView
+    ) {
+        Bukkit.getPluginManager().callEvent(new CustomInventoryCloseEvent(
+                inventory, inventoryView, player));
+    }
+    public static void callCustomInventoryClick(
+            @NonNull Player player,
+            @NonNull Inventory inventory,
+            @NonNull InventoryView inventoryView,
+            @NonNull InventoryAction inventoryAction,
+            @NonNull ItemStack currentItem,
+            @NonNull ItemStack cursor,
+            @NonNull ClickType clickType,
+            boolean cancelled,
+            int slot,
+            int rawSlot
+            ) {
+        Bukkit.getPluginManager().callEvent(new CustomInventoryClickEvent(
+                inventory,
+                inventoryView,
+                player,slot,rawSlot,
+                currentItem,cursor,clickType,
+                inventoryAction,cancelled
+        ));
+    }
+    public static void callCustomInventoryDrag(
+            @NonNull Player player,
+            @NonNull Inventory inventory,
+            @NonNull InventoryView view,
+            @NonNull ItemStack oldCursor,
+            @NonNull ItemStack newItems,
+            @NonNull Map<Integer, ItemStack> newslots,
+            @NonNull Set<Integer> rawslots,
+            @NonNull DragType type,
+            boolean cancelled
+            ) {
+        Bukkit.getPluginManager().callEvent(new CustomInventoryDragEvent(
+                player,
+                inventory,
+                view,
+                oldCursor,
+                newItems, newslots, rawslots, type, cancelled
+        ));
+    }
+    public static void callCustomInventoryMoveItem(
+            @NonNull Inventory source,
+            @NonNull Inventory destination,
+            @NonNull Inventory initiator,
+            @NonNull ItemStack item,
+            boolean cancelled
+    ) {
+        CustomInventoryMoveItemEvent event = new CustomInventoryMoveItemEvent(
+                source,
+                destination,
+                initiator,
+                item,
+                cancelled
+        );
+        Bukkit.getPluginManager().callEvent(event);
+    }
+    public static void callCustomInventoryPickupItem(
+            @NonNull Inventory inventory,
+            @NonNull Item item,
+            boolean cancelled
+    ) {
+        CustomInventoryPickupItemEvent event = new CustomInventoryPickupItemEvent(
+                inventory,
+                item,
+                cancelled
+        );
+        Bukkit.getPluginManager().callEvent(event);
     }
 }

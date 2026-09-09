@@ -4,7 +4,7 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import org.abbas.api.events.*;
 import org.abbas.api.enums.InteractTypes;
-import org.abbas.PluginAPI.API;
+import org.abbas.api.events.inventory.*;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -17,6 +17,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 
@@ -52,11 +53,99 @@ public final class InternalEventBridge implements Listener {
 
         event.joinMessage(customEvent.getMessage());
     }
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onQuit(PlayerQuitEvent event) {
-        API.callCustomPlayerQuit(event.getPlayer(), null);
-    }
+        CustomPlayerQuitEvent customEvent =
+                new CustomPlayerQuitEvent(
+                        event.getPlayer(),
+                        event.quitMessage()
+                );
 
+        Bukkit.getPluginManager().callEvent(customEvent);
+
+        event.quitMessage(customEvent.getMessage());
+    }
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onInventoryClose(InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player player)) {
+            return;
+        }
+        CustomInventoryCloseEvent customEvent = new CustomInventoryCloseEvent(
+                event.getInventory(),
+                event.getView(),
+                player
+        );
+        Bukkit.getPluginManager().callEvent(customEvent);
+    }
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        CustomInventoryClickEvent customEvent = new CustomInventoryClickEvent(
+                event.getInventory(),
+                event.getView(),
+                player,
+                event.getSlot(),
+                event.getRawSlot(),
+                event.getCurrentItem(),
+                event.getCursor(),
+                event.getClick(),
+                event.getAction(),
+                event.isCancelled()
+        );
+        Bukkit.getPluginManager().callEvent(customEvent);
+        event.setCancelled(customEvent.isCancelled());
+    }
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        CustomInventoryDragEvent customEvent = new CustomInventoryDragEvent(
+                player,
+                event.getInventory(),
+                event.getView(),
+                event.getOldCursor(),
+                event.getCursor(),
+                event.getNewItems(),
+                event.getRawSlots(),
+                event.getType(),
+                event.isCancelled()
+        );
+        Bukkit.getPluginManager().callEvent(customEvent);
+        event.setCancelled(customEvent.isCancelled());
+    }
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    public void onInventoryMoveItem(InventoryMoveItemEvent event) {
+
+        CustomInventoryMoveItemEvent customEvent =
+                new CustomInventoryMoveItemEvent(
+                        event.getSource(),
+                        event.getDestination(),
+                        event.getInitiator(),
+                        event.getItem(),
+                        event.isCancelled()
+                );
+
+        Bukkit.getPluginManager().callEvent(customEvent);
+
+        event.setCancelled(customEvent.isCancelled());
+    }
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    public void onInventoryPickupItem(InventoryPickupItemEvent event) {
+
+        CustomInventoryPickupItemEvent customEvent =
+                new CustomInventoryPickupItemEvent(
+                        event.getInventory(),
+                        event.getItem(),
+                        event.isCancelled()
+                );
+
+        Bukkit.getPluginManager().callEvent(customEvent);
+
+        event.setCancelled(customEvent.isCancelled());
+    }
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
     public void onCommand(PlayerCommandPreprocessEvent event) {
         CustomProcessCommandEvent customEvent =
@@ -74,11 +163,7 @@ public final class InternalEventBridge implements Listener {
 
         event.setMessage(customEvent.getMessage());
     }
-
-
-
-
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onDeath(PlayerDeathEvent event) {
         Component deathMessage = event.deathMessage() != null
                 ? event.deathMessage()
@@ -100,7 +185,6 @@ public final class InternalEventBridge implements Listener {
 
         Bukkit.getPluginManager().callEvent(deathEvent);
         if (killer != null) {
-
             CustomPlayerKillEvent killEvent =
                     new CustomPlayerKillEvent(
                             event.getEntity(),
@@ -118,7 +202,7 @@ public final class InternalEventBridge implements Listener {
         }
         event.deathMessage(deathEvent.getDeathMessage());
     }
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onMove(PlayerMoveEvent event) {
         CustomPlayerMoveEvent customEvent = new CustomPlayerMoveEvent(
                 event.getPlayer(),
@@ -127,10 +211,11 @@ public final class InternalEventBridge implements Listener {
         );
         Bukkit.getPluginManager().callEvent(customEvent);
 
+        event.setCancelled(customEvent.isCancelled());
         event.setTo(customEvent.getTo());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onBlockBreak(BlockBreakEvent event) {
         CustomBlockBreakEvent customEvent = new CustomBlockBreakEvent(
                 event.getPlayer(),
@@ -152,7 +237,7 @@ public final class InternalEventBridge implements Listener {
             default -> null; // PHYSICAL (pressure plates etc.) — not modeled yet
         };
 
-        if (type != null) {
+        if (type == null) {
             return;
         }
         if (event.getHand() != EquipmentSlot.HAND) {
@@ -172,10 +257,22 @@ public final class InternalEventBridge implements Listener {
             event.setCancelled(true);
         }
     }
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    public void onInventoryOpen(InventoryOpenEvent event) {
+        if (!(event.getPlayer() instanceof Player player)) {
+            return;
+        }
+        CustomInventoryOpenEvent customEvent = new CustomInventoryOpenEvent(
+                        player,
+                        event.getInventory(),
+                        event.getView(),
+                        event.isCancelled());
+        Bukkit.getPluginManager().callEvent(customEvent);
 
+        event.setCancelled(customEvent.isCancelled());
+    }
 
-
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onBlockPlace(BlockPlaceEvent event) {
         BlockState replacedState = event.getBlockReplacedState();
 
@@ -192,7 +289,7 @@ public final class InternalEventBridge implements Listener {
         event.setBuild(customEvent.canBuild());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onChat(AsyncChatEvent event) {
         CustomPlayerChatEvent customEvent = new CustomPlayerChatEvent(
                 event.getPlayer(),

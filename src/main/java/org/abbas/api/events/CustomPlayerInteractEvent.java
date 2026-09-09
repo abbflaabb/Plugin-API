@@ -97,7 +97,13 @@ public class CustomPlayerInteractEvent extends Event implements Cancellable {
      */
     @Nullable
     public Location getClickedLocation() {
-        return clickedBlock != null ? clickedBlock.getLocation().add(clickedPosition) : null;
+        if (clickedBlock == null) {
+            return null;
+        }
+        if (clickedPosition == null) {
+            return clickedBlock.getLocation();
+        }
+        return clickedBlock.getLocation().add(clickedPosition);
     }
     /**
      * Checks if a block was clicked during the interaction.

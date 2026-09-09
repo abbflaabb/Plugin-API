@@ -1,67 +1,76 @@
-# Plugin-API
+﻿# Plugin-API
 
-A lightweight Spigot/Paper API for bridging Bukkit/Paper events into clean, reusable custom events for other Java plugins.
+A lightweight Spigot/Paper event bridge API for plugin developers who want reusable custom events without writing manual Bukkit listeners for every vanilla event.
 
 [![JitPack](https://jitpack.io/v/abbflaabb/SimpleEvents.svg)](https://jitpack.io/#abbflaabb/SimpleEvents)
 
 ## Overview
 
-Plugin-API is a small plugin API designed to keep custom event logic out of your main plugin and make it reusable across plugins.
+Plugin-API provides a clean, plugin-owned custom event layer for Minecraft servers running Paper/Spigot. It listens to selected Bukkit/Paper events and then fires matching custom events under the `org.abbas.api.events` package.
 
-It automatically listens for common Paper/Bukkit events and fires matching custom events under the `org.abbas.api.events` package. This lets other plugins listen to a consistent, plugin-owned event layer instead of wiring up vanilla event listeners manually.
+This lets other plugins listen to a consistent API instead of depending on fragile vanilla event wiring in every plugin.
 
-The main public entry point is:
+Public API entry points:
 
 ```java
 org.abbas.PluginAPI.API
+org.abbas.api.events
+org.abbas.api.events.inventory
+org.abbas.api.enums
+org.abbas.api.config
+org.abbas.api.interfaces
 ```
 
-The event classes live in:
+Legacy compatibility package:
 
 ```java
-org.abbas.api.events
+org.abbas.api.events.inventory
 ```
+
+This older `inventory` name is still present for compatibility with existing plugins, but the canonical package is `org.abbas.api.events.inventory`.
 
 ---
 
-## What's new in this update
+## Latest update
 
-This update brings the API in line with the current implementation and expands the bridge coverage for modern Paper builds:
+This README reflects the current implementation of the project and the modern Paper build it targets:
 
-- Java 21 + Paper 1.21.1 support
-- Updated Maven dependency setup
-- Expanded custom event coverage for movement, interaction, and kill events
-- More consistent API helper methods via `API.callCustom...()`
-- `Component`-based messaging support with Kyori Adventure
-- Listener registration helper through `API.registerListener(...)`
+- Java 21 support
+- Paper/Spigot 1.21.1+ compatibility
+- Updated Maven/JitPack setup
+- Expanded event bridge coverage for movement, interaction, kill, and inventory flows
+- Adventure `Component`-based message handling
+- Static helper methods for dispatching custom events
+- inventory compatibility package cleanup with `org.abbas.api.events.inventory` and legacy `invenetory` alias support
+- Cancellation propagation for custom movement, interaction, block, chat, and inventory events
 
 ---
 
 ## Features
 
 - Lightweight custom event API
-- Automatic Bukkit/Paper bridging
-- Cancellable custom events
+- Automatic Bukkit/Paper event bridging
+- Cancellable custom events where applicable
 - Plugin-owned listener registration
-- Player movement, interaction, and kill events
-- Adventure `Component` message support
-- Level-up event support without a direct Bukkit equivalent
-- Backward-friendly helper methods for dispatching events
+- Support for joins, quits, deaths, chat, blocks, movement, interaction, and level-up events
+- Adventure `Component` support
+- API helpers for manual event dispatch
+- Configuration helpers and reusable database interfaces
 
 ---
 
 ## Requirements
 
 - Java 21
-- Paper/Spigot 1.21.1+
+- Paper or Spigot 1.21.1+
 - Maven
-- Plugin-API installed on the target server
+- Plugin-API installed on the server
 
 ---
 
 ## Installation
 
-Place the generated JAR in your server's `plugins/` folder.
+Place the compiled JAR in the server's `plugins/` directory.
 
 If another plugin depends on Plugin-API, declare it in `plugin.yml`:
 
@@ -70,7 +79,7 @@ depend:
   - Plugin-API
 ```
 
-Use `softdepend` if your plugin can run without it:
+Use `softdepend` if the plugin can work without it:
 
 ```yaml
 softdepend:
@@ -107,30 +116,69 @@ Replace the version with the tag or release you want to use.
 
 ---
 
-## Event bridging
+## Public API
 
-Plugin-API automatically listens for relevant Paper/Bukkit events and dispatches matching custom events.
+The core class is:
 
-| Bukkit/Paper event | Plugin-API events           |
-| --- |-----------------------------|
-| `PlayerJoinEvent` | `CustomPlayerJoinEvent`     |
-| `PlayerQuitEvent` | `CustomPlayerQuitEvent`     |
-| `PlayerCommandPreprocessEvent` | `CustomProcessCommandEvent` |
-| `PlayerDeathEvent` | `CustomPlayerDeathEvent`    |
-| `PlayerKill` flow | `CustomPlayerKillEvent`     |
-| `BlockBreakEvent` | `CustomBlockBreakEvent`     |
-| `BlockPlaceEvent` | `CustomBlockPlaceEvent`     |
-| `AsyncChatEvent` | `CustomPlayerChatEvent`     |
-| `PlayerMoveEvent` | `CustomPlayerMoveEvent`     |
-| `PlayerInteractEvent` | `CustomPlayerInteractEvent` |
+```java
+org.abbas.PluginAPI.API
+```
 
-`PlayerLevelUpEvent` is a custom event without a direct Paper equivalent and is fired manually by the plugin that owns the level system.
+Main helper methods include:
+
+```java
+API.registerListener(plugin, listener);
+API.callCustomPlayerJoin(player, message);
+API.callCustomPlayerQuit(player, message);
+API.callCustomProcessCommand(player, message);
+API.callCustomPlayerDeath(player, message, type, killer);
+API.callCustomPlayerMove(player, from, to);
+API.callCustomPlayerInteract(player, type, item, block, clickedPosition);
+API.callCustomPlayerLevelUpEvent(player, oldLevel, newLevel);
+API.callCustomInventoryOpen(player, inventory, view, cancelled);
+API.callCustomInventoryClose(player, inventory, view);
+API.callCustomInventoryClick(player, inventory, view, action, currentItem, cursor, clickType, cancelled, slot, rawSlot);
+API.callCustomInventoryDrag(player, inventory, view, oldCursor, newItems, newSlots, rawSlots, type, cancelled);
+API.callCustomInventoryMoveItem(source, destination, initiator, item, cancelled);
+API.callCustomInventoryPickupItem(inventory, item, cancelled);
+```
 
 ---
 
-## Registering a listener
+## Event bridging
 
-Use the built-in helper to register a listener with the source plugin as owner:
+Plugin-API listens for the following Bukkit/Paper events and fires compatible custom events:
+
+| Bukkit/Paper event | Plugin-API events |
+| --- | --- |
+| `PlayerJoinEvent` | `CustomPlayerJoinEvent` |
+| `PlayerQuitEvent` | `CustomPlayerQuitEvent` |
+| `PlayerCommandPreprocessEvent` | `CustomProcessCommandEvent` |
+| `PlayerDeathEvent` | `CustomPlayerDeathEvent` |
+| `PlayerMoveEvent` | `CustomPlayerMoveEvent` |
+| `BlockBreakEvent` | `CustomBlockBreakEvent` |
+| `BlockPlaceEvent` | `CustomBlockPlaceEvent` |
+| `AsyncChatEvent` | `CustomPlayerChatEvent` |
+| `PlayerInteractEvent` | `CustomPlayerInteractEvent` |
+| `InventoryOpenEvent` | `CustomInventoryOpenEvent` |
+| `InventoryCloseEvent` | `CustomInventoryCloseEvent` |
+| `InventoryClickEvent` | `CustomInventoryClickEvent` |
+| `InventoryDragEvent` | `CustomInventoryDragEvent` |
+| `InventoryMoveItemEvent` | `CustomInventoryMoveItemEvent` |
+| `InventoryPickupItemEvent` | `CustomInventoryPickupItemEvent` |
+
+The project also defines kill and teleport events alongside the automatic bridge:
+
+- `CustomPlayerKillEvent`
+- `CustomPlayerTeleportEvent`
+
+`PlayerLevelUpEvent` is not bridged from a Bukkit equivalent; it is intended to be fired manually by the plugin that owns the leveling system.
+
+---
+
+## Registering listeners
+
+Use the built-in helper:
 
 ```java
 API.registerListener(this, new MyListener());
@@ -149,7 +197,7 @@ public class MyListener implements Listener {
 }
 ```
 
-You can still register with Bukkit normally when needed:
+You can also register listeners normally with Bukkit:
 
 ```java
 getServer().getPluginManager().registerEvents(new MyListener(), this);
@@ -177,13 +225,21 @@ public void onQuit(CustomPlayerQuitEvent event) {
 }
 ```
 
+### Chat event
+
+```java
+@EventHandler
+public void onChat(CustomPlayerChatEvent event) {
+    event.setMessage(Component.text(event.getPlayer().getName() + ": " + event.getMessage()));
+}
+```
+
 ### Command event
 
 ```java
 @EventHandler
 public void onCommand(CustomProcessCommandEvent event) {
-    String message = event.getMessage();
-    if (message.startsWith("/home")) {
+    if (event.getMessage().startsWith("/home")) {
         event.setCancelled(true);
     }
 }
@@ -196,7 +252,7 @@ public void onCommand(CustomProcessCommandEvent event) {
 public void onMove(CustomPlayerMoveEvent event) {
     Location from = event.getFrom();
     Location to = event.getTo();
-    // React to movement changes here
+    // handle movement logic here
 }
 ```
 
@@ -205,7 +261,7 @@ public void onMove(CustomPlayerMoveEvent event) {
 ```java
 @EventHandler
 public void onBlockBreak(CustomBlockBreakEvent event) {
-    if (event.getPlayer().hasPermission("example.break-protected")) {
+    if (event.getPlayer().hasPermission("example.blockbreak")) {
         event.setCancelled(true);
     }
 }
@@ -226,19 +282,18 @@ public void onLevelUp(PlayerLevelUpEvent event) {
 
 ## Manual event dispatch
 
-The API exposes static helper methods for firing custom events manually.
+The API also exposes helper methods that let plugins fire custom events programmatically:
 
 ```java
 API.callCustomPlayerJoin(player, Component.text("Welcome back!"));
 API.callCustomPlayerQuit(player, "See you soon!");
-API.callCustomPlayerChat(player, Component.text("Hello"), "global", false);
 API.callCustomProcessCommand(player, "/warp hub");
 API.callCustomPlayerDeath(player, Component.text("Someone died"), DeathMessageType.DEFAULT, null);
 API.callCustomPlayerMove(player, from, to);
 API.callCustomPlayerInteract(player, InteractTypes.RIGHT_CLICK_BLOCK, item, block, null);
 ```
 
-For level-up events, use:
+Level-up example:
 
 ```java
 PlayerLevelUpEvent event = API.callCustomPlayerLevelUpEvent(player, oldLevel, newLevel);
@@ -249,9 +304,9 @@ if (event.isCancelled()) {
 
 ---
 
-## Supported events
+## Available custom events
 
-Current public events in `org.abbas.api.events` include:
+The project currently includes these public event classes in `org.abbas.api.events`:
 
 - `CustomPlayerJoinEvent`
 - `CustomPlayerQuitEvent`
@@ -263,9 +318,58 @@ Current public events in `org.abbas.api.events` include:
 - `CustomBlockPlaceEvent`
 - `CustomPlayerMoveEvent`
 - `CustomPlayerInteractEvent`
+- `CustomPlayerTeleportEvent`
 - `PlayerLevelUpEvent`
 
-Most of these implement Bukkit's usual `Event` pattern and support cancellation where relevant.
+Most of these follow Bukkit's standard event model and support cancellation when relevant.
+
+---
+
+## Utility APIs
+
+### Config support
+
+```java
+ConfigManager configManager = new ConfigManager(this);
+configManager.load();
+FileConfiguration config = configManager.getConfig(ConfigType.MAIN);
+```
+
+Available config types:
+
+- `ConfigType.MAIN` -> `config.yml`
+- `ConfigType.MESSAGES` -> `messages.yml`
+
+### Database interface
+
+```java
+public interface DatabaseAPI {
+    void execute(String sql, Object... params);
+    <T> T query(String sql, ResultMapper<T> mapper, Object... parameters);
+    List<Map<String, Object>> query(String sql, Object... parameters);
+    int update(String sql, Object... parameters);
+    void close();
+}
+```
+
+```java
+@FunctionalInterface
+public interface ResultMapper<T> {
+    T map(ResultSet rs) throws SQLException;
+}
+```
+
+### Interaction types
+
+```java
+public enum InteractTypes {
+    LEFT_CLICK_BLOCK,
+    RIGHT_CLICK_BLOCK,
+    LEFT_CLICK_AIR,
+    RIGHT_CLICK_AIR,
+    PHYSICAL
+}
+```
 
 ---
 
@@ -280,20 +384,26 @@ src/main/java/
 │
 ├── org/abbas/api/
 │   ├── config/
+│   │   ├── ConfigManager.java
+│   │   └── ConfigType.java
 │   ├── enums/
-│   └── events/
-│       ├── CustomBlockBreakEvent.java
-│       ├── CustomBlockPlaceEvent.java
-│       ├── CustomPlayerChatEvent.java
-│       ├── CustomPlayerDeathEvent.java
-│       ├── CustomPlayerInteractEvent.java
-│       ├── CustomPlayerJoinEvent.java
-│       ├── CustomPlayerKillEvent.java
-│       ├── CustomPlayerMoveEvent.java
-│       ├── CustomPlayerQuitEvent.java
-│       ├── CustomPlayerTeleportEvent.java
-│       ├── CustomProcessCommandEvent.java
-│       └── PlayerLevelUpEvent.java
+│   │   └── InteractTypes.java
+│   ├── events/
+│   │   ├── CustomBlockBreakEvent.java
+│   │   ├── CustomBlockPlaceEvent.java
+│   │   ├── CustomPlayerChatEvent.java
+│   │   ├── CustomPlayerDeathEvent.java
+│   │   ├── CustomPlayerInteractEvent.java
+│   │   ├── CustomPlayerJoinEvent.java
+│   │   ├── CustomPlayerKillEvent.java
+│   │   ├── CustomPlayerMoveEvent.java
+│   │   ├── CustomPlayerQuitEvent.java
+│   │   ├── CustomPlayerTeleportEvent.java
+│   │   ├── CustomProcessCommandEvent.java
+│   │   └── PlayerLevelUpEvent.java
+│   └── interfaces/
+│       ├── DatabaseAPI.java
+│       └── ResultMapper.java
 │
 └── resources/
     └── plugin.yml
@@ -303,17 +413,13 @@ src/main/java/
 
 ## Building
 
-To build the plugin locally:
+Build the project with Maven:
 
 ```bash
 mvn clean package
 ```
 
-The JAR is generated in:
-
-```text
-target/
-```
+The compiled JAR will be generated in the `target/` directory.
 
 ---
 
@@ -327,10 +433,12 @@ This project does not currently declare a license.
 
 Issues, suggestions, and pull requests are welcome.
 
-If you find a bug or have an idea for improving the event API, open an issue or contribute a patch to the repository.
+If you find a bug or have an idea for improving the API, open an issue or submit a patch in the repository.
 
 ---
 
 ## Author
 
 **Abbas**
+
+Plugin-API is designed to provide a reusable event layer for Paper/Spigot plugin developers.

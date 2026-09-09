@@ -1,5 +1,6 @@
 package org.abbas.api.events;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -15,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 public class CustomPlayerQuitEvent extends Event {
     private static final HandlerList HANDLER_LIST = new HandlerList();
     private final Player player;
-    private @Nullable String message;
+    private @Nullable Component message;
 
     /**
      * Creates a custom player-quit event.
@@ -23,7 +24,7 @@ public class CustomPlayerQuitEvent extends Event {
      * @param player the player who quit
      * @param message the quit message, or {@code null}
      */
-    public CustomPlayerQuitEvent(Player player, @Nullable String message) {
+    public CustomPlayerQuitEvent(Player player, @org.jetbrains.annotations.Nullable Component message) {
         this.player = player;
         this.message = message;
     }
@@ -33,13 +34,15 @@ public class CustomPlayerQuitEvent extends Event {
         return player;
     }
 
-    /** @return the quit message, or {@code null} */
-    public @Nullable String getMessage() {
+    /**
+     * @return the quit message, or {@code null}
+     */
+    public @org.jetbrains.annotations.Nullable Component getMessage() {
         return message;
     }
 
     /** @param message the new quit message, or {@code null} */
-    public void setMessage(@Nullable String message) {
+    public void setMessage(@Nullable Component message) {
         this.message = message;
     }
 
