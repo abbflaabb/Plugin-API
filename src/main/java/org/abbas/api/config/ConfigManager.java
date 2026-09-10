@@ -1,5 +1,6 @@
 package org.abbas.api.config;
 
+import org.abbas.api.enums.ConfigType;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;

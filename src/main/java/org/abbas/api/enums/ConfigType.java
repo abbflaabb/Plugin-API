@@ -1,4 +1,4 @@
-package org.abbas.api.config;
+package org.abbas.api.enums;
 
 public enum ConfigType {
     MAIN("config.yml"),

@@ -41,8 +41,13 @@ This README reflects the current implementation of the project and the modern Pa
 - Expanded event bridge coverage for movement, interaction, kill, and inventory flows
 - Adventure `Component`-based message handling
 - Static helper methods for dispatching custom events
-- inventory compatibility package cleanup with `org.abbas.api.events.inventory` and legacy `invenetory` alias support
+- Inventory compatibility package cleanup with `org.abbas.api.events.inventory` and legacy `inventory` alias support
 - Cancellation propagation for custom movement, interaction, block, chat, and inventory events
+
+## Changelog
+
+- 1.2.0 (unreleased): README refreshed, fixed typos, clarified usage, bumped Maven dependency example to 1.2.0.
+- 1.1.4: Previous snapshot with core event bridging and API helpers.
 
 ---
 
@@ -107,7 +112,7 @@ Then add the dependency:
 <dependency>
     <groupId>com.github.abbflaabb</groupId>
     <artifactId>Plugin-API</artifactId>
-    <version>1.1.4-SNAPSHOT</version>
+    <version>1.2.0</version>
     <scope>provided</scope>
 </dependency>
 ```

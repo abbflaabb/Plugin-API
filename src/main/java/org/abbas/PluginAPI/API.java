@@ -6,6 +6,8 @@ import org.abbas.api.enums.InteractTypes;
 import org.abbas.PluginAPI.internal.InternalEventBridge;
 import org.abbas.api.events.inventory.*;
 import org.abbas.api.interfaces.DatabaseAPI;
+import org.abbas.api.interfaces.MenusAPI;
+import org.abbas.api.menus.internal.MenusAPIImpl;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -41,7 +43,7 @@ import java.util.Set;
 public final class API extends JavaPlugin {
 
     private static @Nullable API instance;
-
+    private static MenusAPI menusAPI;
     /**
      * Returns the currently enabled SimpleEvents plugin instance.
      *
@@ -56,6 +58,7 @@ public final class API extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        menusAPI = new MenusAPIImpl();
         Bukkit.getPluginManager().registerEvents(new InternalEventBridge(), this);
     }
 
@@ -65,6 +68,7 @@ public final class API extends JavaPlugin {
     @Override
     public void onDisable() {
         instance = null;
+        menusAPI = null;
     }
 
     /**
