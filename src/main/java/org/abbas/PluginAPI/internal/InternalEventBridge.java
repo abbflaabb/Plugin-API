@@ -2,9 +2,14 @@ package org.abbas.PluginAPI.internal;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
+import org.abbas.PluginAPI.API;
 import org.abbas.api.events.*;
 import org.abbas.api.enums.InteractTypes;
 import org.abbas.api.events.inventory.*;
+import org.abbas.api.events.menus.MenuClickEvent;
+import org.abbas.api.events.menus.MenuCloseEvent;
+import org.abbas.api.events.menus.MenuOpenEvent;
+import org.abbas.api.menus.internal.MenuImpl;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -20,6 +25,10 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.Inventory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -39,7 +48,10 @@ import org.bukkit.inventory.EquipmentSlot;
  * {@code SimpleEvents.callCustomPlayerLevelUp(...)}.
  */
 public final class InternalEventBridge implements Listener {
-
+    private final Map<Inventory, MenuImpl> menus = new HashMap<>();
+    public void registerMenu(MenuImpl menu) {
+        menus.put(menu.getInventory(), menu);
+    }
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onJoin(PlayerJoinEvent event) {
 
@@ -76,10 +88,20 @@ public final class InternalEventBridge implements Listener {
                 player
         );
         Bukkit.getPluginManager().callEvent(customEvent);
+        MenuImpl menu = menus.get(event.getInventory());
+
+        if (menu == null) {
+            return;
+        }
+        API.callMenuClose(player, menu);
     }
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        MenuImpl menu = menus.get(event.getView().getTopInventory());
+        if (menu == null) {
             return;
         }
         CustomInventoryClickEvent customEvent = new CustomInventoryClickEvent(
@@ -95,12 +117,53 @@ public final class InternalEventBridge implements Listener {
                 event.isCancelled()
         );
         Bukkit.getPluginManager().callEvent(customEvent);
-        event.setCancelled(customEvent.isCancelled());
+
+        if (customEvent.isCancelled()) {
+            event.setCancelled(true);
+        }
+
+        int rawSlot = event.getRawSlot();
+        int topSize = event.getView().getTopInventory().getSize();
+        if (!menu.isEditable() && rawSlot >= 0 && rawSlot < topSize) {
+            event.setCancelled(true);
+        }
+        MenuClickEvent menuClickEvent = API.callMenuClick(
+                player,
+                menu,
+                rawSlot,
+                event.getCurrentItem(),
+                event.getClick(),
+                event.getAction()
+        );
+        if (menuClickEvent.isCancelled()) {
+            event.setCancelled(true);
+        }
+        var menuItem = menu.getItem(rawSlot);
+        if (menuItem == null) {
+            return;
+        }
+        if (menuItem.getClickAction() != null) {
+            menuItem.getClickAction().execute(menuClickEvent);
+        }
     }
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onInventoryDrag(InventoryDragEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
+        }
+        MenuImpl menu = menus.get(event.getView().getTopInventory());
+        if (menu == null) {
+            return;
+        }
+        int topSize = event.getView().getTopInventory().getSize();
+        // Prevent dragging items into or around the menu when it is not editable.
+        if (!menu.isEditable()) {
+            for (int rawSlot : event.getRawSlots()) {
+                if (rawSlot >= 0 && rawSlot < topSize) {
+                    event.setCancelled(true);
+                    break;
+                }
+            }
         }
         CustomInventoryDragEvent customEvent = new CustomInventoryDragEvent(
                 player,
@@ -114,7 +177,9 @@ public final class InternalEventBridge implements Listener {
                 event.isCancelled()
         );
         Bukkit.getPluginManager().callEvent(customEvent);
-        event.setCancelled(customEvent.isCancelled());
+        if (customEvent.isCancelled()) {
+            event.setCancelled(true);
+        }
     }
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onInventoryMoveItem(InventoryMoveItemEvent event) {
@@ -270,6 +335,12 @@ public final class InternalEventBridge implements Listener {
         Bukkit.getPluginManager().callEvent(customEvent);
 
         event.setCancelled(customEvent.isCancelled());
+        MenuImpl menu = menus.get(event.getInventory());
+
+        if (menu == null) {
+            return;
+        }
+        API.callMenuOpen(player, menu);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)

@@ -5,7 +5,10 @@ import org.abbas.api.events.*;
 import org.abbas.api.enums.InteractTypes;
 import org.abbas.PluginAPI.internal.InternalEventBridge;
 import org.abbas.api.events.inventory.*;
-import org.abbas.api.interfaces.DatabaseAPI;
+import org.abbas.api.events.menus.MenuClickEvent;
+import org.abbas.api.events.menus.MenuCloseEvent;
+import org.abbas.api.events.menus.MenuOpenEvent;
+import org.abbas.api.interfaces.IMenu;
 import org.abbas.api.interfaces.MenusAPI;
 import org.abbas.api.menus.internal.MenusAPIImpl;
 import org.bukkit.Bukkit;
@@ -20,7 +23,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.DragType;
 import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
@@ -58,8 +60,11 @@ public final class API extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        menusAPI = new MenusAPIImpl();
-        Bukkit.getPluginManager().registerEvents(new InternalEventBridge(), this);
+        InternalEventBridge eventBridge = new InternalEventBridge();
+
+        menusAPI = new MenusAPIImpl(eventBridge);
+
+        Bukkit.getPluginManager().registerEvents(eventBridge, this);
     }
 
     /**
@@ -69,6 +74,9 @@ public final class API extends JavaPlugin {
     public void onDisable() {
         instance = null;
         menusAPI = null;
+    }
+    public MenusAPI getMenusAPI() {
+        return menusAPI;
     }
 
     /**
@@ -375,5 +383,39 @@ public final class API extends JavaPlugin {
                 cancelled
         );
         Bukkit.getPluginManager().callEvent(event);
+    }
+    /**
+     * Menus API calls
+     */
+    public static void callMenuOpen(Player player, IMenu menu) {
+        Bukkit.getPluginManager().callEvent(
+                new MenuOpenEvent(player, menu)
+        );
+    }
+    public static void callMenuClose(Player player, IMenu menu) {
+        Bukkit.getPluginManager().callEvent(
+                new MenuCloseEvent(player, menu)
+        );
+    }
+    public static MenuClickEvent callMenuClick(
+            Player player,
+            IMenu menu,
+            int slot,
+            ItemStack itemStack,
+            ClickType clickType,
+            InventoryAction action
+    ) {
+        MenuClickEvent event = new MenuClickEvent(
+                player,
+                menu,
+                slot,
+                itemStack,
+                action,
+                clickType
+        );
+
+        Bukkit.getPluginManager().callEvent(event);
+
+        return event;
     }
 }
