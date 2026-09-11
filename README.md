@@ -285,6 +285,148 @@ public void onLevelUp(PlayerLevelUpEvent event) {
 
 ---
 
+### Menus API example (simple)
+
+A minimal example showing how to use the MenusAPI from Plugin-API. Put this class in your plugin (package com.example.exampleplugin) and ensure Plugin-API is enabled on the server.
+
+```java
+package com.example.exampleplugin;
+
+import net.kyori.adventure.text.Component;
+import org.abbas.PluginAPI.API;
+import org.abbas.api.interfaces.IMenu;
+import org.abbas.api.interfaces.IMenuItem;
+import org.abbas.api.interfaces.MenusAPI;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public final class ExamplePlugin extends JavaPlugin implements Listener {
+
+    private MenusAPI menusAPI;
+
+    @Override
+    public void onEnable() {
+
+        API api = API.getInstance();
+
+        if (api == null) {
+            getLogger().severe("Plugin-API is not enabled!");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        menusAPI = api.getMenusAPI();
+
+        getServer().getPluginManager().registerEvents(this, this);
+
+        getLogger().info("ExamplePlugin enabled!");
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+
+        Player player = event.getPlayer();
+
+        // Create menu
+        IMenu menu = menusAPI.createMenu(
+                Component.text("Example Menu"),
+                27
+        );
+
+        // Prevent players from modifying the menu
+        menu.setEditable(false);
+
+        // =========================
+        // Item 1
+        // =========================
+
+        IMenuItem diamond = menusAPI.createItem(
+                new ItemStack(Material.DIAMOND)
+        );
+
+        diamond.setDisplayName(
+                Component.text("Diamond")
+        );
+
+        diamond.setClickAction(clickEvent -> {
+
+            Player p = clickEvent.getPlayer();
+
+            p.sendMessage(
+                    Component.text("You clicked the Diamond!")
+            );
+
+        });
+
+        menu.setItem(diamond, 11);
+
+
+        // =========================
+        // Item 2
+        // =========================
+
+        IMenuItem emerald = menusAPI.createItem(
+                new ItemStack(Material.EMERALD)
+        );
+
+        emerald.setDisplayName(
+                Component.text("Emerald")
+        );
+
+        emerald.setClickAction(clickEvent -> {
+
+            Player p = clickEvent.getPlayer();
+
+            p.sendMessage(
+                    Component.text("You clicked the Emerald!")
+            );
+
+        });
+
+        menu.setItem(emerald, 13);
+
+
+        // =========================
+        // Item 3
+        // =========================
+
+        IMenuItem gold = menusAPI.createItem(
+                new ItemStack(Material.GOLD_INGOT)
+        );
+
+        gold.setDisplayName(
+                Component.text("Gold")
+        );
+
+        gold.setClickAction(clickEvent -> {
+
+            Player p = clickEvent.getPlayer();
+
+            p.sendMessage(
+                    Component.text("You clicked the Gold!")
+            );
+
+        });
+
+        menu.setItem(gold, 15);
+
+
+        // Open menu
+        menu.open(player);
+    }
+}
+```
+
+---
+
+
+---
+
 ## Manual event dispatch
 
 The API also exposes helper methods that let plugins fire custom events programmatically:
